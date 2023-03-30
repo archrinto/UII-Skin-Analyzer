@@ -2,17 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../helpers/functions.dart';
-import '../../models/analysis_history.dart';
-
-class Profile extends StatefulWidget {
-  const Profile({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<Profile> createState() => _ProfileState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileScreenState extends State<ProfileScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -23,9 +20,7 @@ class _ProfileState extends State<Profile> {
   TextEditingController passwordController = TextEditingController();
 
   bool isSignIn = false;
-  int jerawatCount = 0;
-  bool isUploading = false;
-  bool signIn = false;
+  bool isLoading = false;
 
   void _onPressedSave() async {
     final isValid = _formKey.currentState?.validate();
@@ -35,38 +30,33 @@ class _ProfileState extends State<Profile> {
 
     try {
       setState(() {
-        isUploading = true;
+        isLoading = true;
       });
 
       CollectionReference users = firestore.collection('users');
-      String userID = '';
-
       if (auth.currentUser != null) {
-        // await auth.currentUser!.updateEmail(emailController.text);
-        // await auth.currentUser!.updatePassword(passwordController.text);
-
-        userID = auth.currentUser!.uid;
+        await users.doc(auth.currentUser!.uid).update({
+          'name': nameController.text,
+          'birthDate': birthDateController.text,
+        });
       } else {
         UserCredential userCredential = await auth.createUserWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text,
         );
 
-        userID = userCredential.user!.uid;
+        await users.doc(userCredential.user!.uid).set({
+          'name': nameController.text,
+          'birthDate': birthDateController.text,
+          'jerawatCount': 0,
+        });
       }
 
-      await users.doc(userID).set({
-        'name': nameController.text,
-        'birthDate': birthDateController.text,
-        'jerawatCount': jerawatCount,
-      });
-
       setState(() {
-        isUploading = false;
+        isLoading = false;
       });
 
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Selamat Datang'),
@@ -75,6 +65,10 @@ class _ProfileState extends State<Profile> {
         ),
       );
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -82,17 +76,13 @@ class _ProfileState extends State<Profile> {
           duration: const Duration(seconds: 2),
         ),
       );
-
-      setState(() {
-        isUploading = false;
-      });
     }
   }
 
   void _onPressedSignIn() async {
     try {
       setState(() {
-        isUploading = true;
+        isLoading = true;
       });
 
       await auth.signInWithEmailAndPassword(
@@ -101,8 +91,10 @@ class _ProfileState extends State<Profile> {
       );
 
       setState(() {
-        isUploading = false;
+        isLoading = false;
       });
+
+      _changeSignedInState();
 
       if (!mounted) return;
 
@@ -115,7 +107,7 @@ class _ProfileState extends State<Profile> {
       );
     } on FirebaseAuthException catch (e) {
       setState(() {
-        isUploading = false;
+        isLoading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,6 +124,21 @@ class _ProfileState extends State<Profile> {
     setState(() {
       isSignIn = !isSignIn;
     });
+  }
+
+  void _onPressedLogout() async {
+    try {
+      _changeSignedInState();
+      await auth.signOut();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: const Color(0xFF62BBE2),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Widget _buildAvatar() {
@@ -186,28 +193,28 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _buildButton(String buttonText, Icon buttonIcon, VoidCallback onPressed, bool isUploading) {
+  Widget _buildButton(String buttonText, Icon buttonIcon, VoidCallback onPressed, bool isLoading, Color color) {
     return Container(
       width: MediaQuery.of(context).size.width / 3,
       height: 50,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            offset: Offset(1, 1),
+            offset: const Offset(1, 1),
             blurRadius: 1,
-            color: Color(0xFF62BBE2),
+            color: color,
           ),
         ],
       ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.all(0),
-          backgroundColor: const Color(0xFF62BBE2),
-          disabledBackgroundColor: const Color(0xFF62BBE2),
+          backgroundColor: color,
+          disabledBackgroundColor: color,
           disabledForegroundColor: Colors.white,
         ),
-        onPressed: isUploading ? null : onPressed,
-        child: isUploading
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
             ? const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(color: Colors.white),
@@ -232,15 +239,12 @@ class _ProfileState extends State<Profile> {
 
     if (docSnapshot.exists) {
       Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
-      List<AnalysisHistory> analysisHistory = await fetchAndSetAnalysisHistory();
 
       setState(() {
         nameController.text = data['name'];
         birthDateController.text = data['birthDate'];
         emailController.text = auth.currentUser!.email!;
         passwordController.text = '12345678';
-        jerawatCount = analysisHistory.fold(
-            0, (int accumulator, AnalysisHistory myObject) => accumulator + generateJerawats(myObject.jerawatResult!).length);
       });
     }
   }
@@ -283,8 +287,9 @@ class _ProfileState extends State<Profile> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildButton('Registrasi', const Icon(Icons.person_add_alt_1_outlined), _changeSignedInState, false),
-                        _buildButton('Masuk', const Icon(Icons.login_outlined), _onPressedSignIn, isUploading)
+                        _buildButton('Registrasi', const Icon(Icons.person_add_alt_1_outlined), _changeSignedInState, false,
+                            const Color(0xFF62BBE2)),
+                        _buildButton('Masuk', const Icon(Icons.login_outlined), _onPressedSignIn, isLoading, const Color(0xFF62BBE2))
                       ],
                     ),
                   ],
@@ -334,33 +339,9 @@ class _ProfileState extends State<Profile> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         auth.currentUser == null
-                            ? _buildButton('Masuk', const Icon(Icons.login_outlined), _changeSignedInState, false)
-                            : Container(
-                                width: MediaQuery.of(context).size.width / 3,
-                                height: 50,
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      offset: Offset(1, 1),
-                                      blurRadius: 1,
-                                      color: Colors.green,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Jerawat Dideteksi: $jerawatCount',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                        _buildButton('Simpan', const Icon(Icons.save_outlined), _onPressedSave, isUploading),
+                            ? _buildButton('Masuk', const Icon(Icons.login_outlined), _changeSignedInState, false, const Color(0xFF62BBE2))
+                            : _buildButton('Keluar', const Icon(Icons.logout_outlined), _onPressedLogout, isLoading, Colors.red),
+                        _buildButton('Simpan', const Icon(Icons.save_outlined), _onPressedSave, isLoading, const Color(0xFF62BBE2)),
                       ],
                     ),
                   ],

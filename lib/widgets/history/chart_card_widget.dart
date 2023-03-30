@@ -4,16 +4,16 @@ import 'package:intl/intl.dart';
 import '../../widgets/history/chart_widget.dart';
 import '../../models/analysis_history.dart';
 
-class ChartCardHistory extends StatefulWidget {
-  const ChartCardHistory({super.key, required this.analysisHistory});
+class ChartCardWidget extends StatefulWidget {
+  const ChartCardWidget({super.key, required this.analysisHistory});
 
   final List<AnalysisHistory> analysisHistory;
 
   @override
-  State<ChartCardHistory> createState() => _ChartCardHistoryState();
+  State<ChartCardWidget> createState() => _ChartCardWidgetState();
 }
 
-class _ChartCardHistoryState extends State<ChartCardHistory> {
+class _ChartCardWidgetState extends State<ChartCardWidget> {
   String selectedMonth = DateFormat.MMMM('id_ID').format(DateTime.now());
   String selectedType = 'Jerawat';
 
@@ -116,7 +116,7 @@ class _ChartCardHistoryState extends State<ChartCardHistory> {
             color: Colors.grey,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
+            padding: const EdgeInsets.only(top: 20.0, bottom: 24.0),
             child: Text(
               'Grafik $selectedType Pada Bulan $selectedMonth',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

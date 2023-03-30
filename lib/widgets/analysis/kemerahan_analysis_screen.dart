@@ -46,7 +46,7 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.126.138:5000/deteksi_kemerahan"),
+      Uri.parse("http://192.168.100.13:5000/deteksi_kemerahan"),
     );
     request.files.add(
       http.MultipartFile(
@@ -130,6 +130,7 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: AnalysisResultWidget(
+          strokeWidth: 2,
           isServerError: _isServerError,
           notificationMessage: 'Terdeteksi $_kemerahanCount Kemerahan',
           imageFile: _imageFile,

@@ -46,7 +46,7 @@ class _BercakHitamAnalysisScreenState extends State<BercakHitamAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.126.138:5000/deteksi_bintik_hitam"),
+      Uri.parse("http://192.168.100.13:5000/deteksi_bintik_hitam"),
     );
     request.files.add(
       http.MultipartFile(
@@ -130,6 +130,7 @@ class _BercakHitamAnalysisScreenState extends State<BercakHitamAnalysisScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: AnalysisResultWidget(
+          strokeWidth: 1,
           isServerError: _isServerError,
           notificationMessage: 'Terdeteksi $_bercakHitamCount Bercak Hitam',
           imageFile: _imageFile,

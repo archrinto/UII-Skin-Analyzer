@@ -75,6 +75,7 @@ class JerawatHistoryScreen extends StatelessWidget {
                   return (value.isEmpty)
                       ? const SizedBox()
                       : AnalysisResultWidget(
+                          strokeWidth: 3,
                           notificationMessage: 'Terdeteksi ${generateJerawats(value[0].jerawatResult!).length} Jerawat',
                           imageFile: File(value[0].imagePath),
                           objectData: generateJerawats(value[0].jerawatResult!),

@@ -15,26 +15,24 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   var animated = false;
 
-  void animationDone() async {
+  void whenAnimationDone() async {
+    final navigator = Navigator.of(context);
+
     final prefs = await SharedPreferences.getInstance();
+    final isCachedImageExists = prefs.getString('cachedImage');
 
-    final isNewUser = prefs.getBool('isNewUser');
-
-    if (!mounted) return; //* https://dart-lang.github.io/linter/lints/use_build_context_synchronously.html
-
-    if (isNewUser == null) {
-      Navigator.of(context).pushReplacementNamed(OnboardingScreen.routeName);
-      return;
+    if (isCachedImageExists == null) {
+      navigator.pushReplacementNamed(OnboardingScreen.routeName);
+    } else {
+      navigator.pushReplacementNamed(MainScreen.routeName);
     }
-
-    Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
   }
 
   @override
   void initState() {
     Future.delayed(const Duration(seconds: 1))
         .then((value) => setState(() => animated = true))
-        .then((value) => Future.delayed(const Duration(seconds: 2)).then((value) => animationDone()));
+        .then((value) => Future.delayed(const Duration(seconds: 2)).then((value) => whenAnimationDone()));
 
     super.initState();
   }

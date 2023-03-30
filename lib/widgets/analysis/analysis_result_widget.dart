@@ -10,6 +10,7 @@ import '../../helpers/draw_in_canvas.dart';
 class AnalysisResultWidget extends StatelessWidget {
   const AnalysisResultWidget({
     super.key,
+    required this.strokeWidth,
     this.isServerError = false,
     required this.notificationMessage,
     required this.imageFile,
@@ -18,6 +19,7 @@ class AnalysisResultWidget extends StatelessWidget {
     required this.canvasColor,
   });
 
+  final double strokeWidth;
   final bool isServerError;
   final String notificationMessage;
   final File? imageFile;
@@ -43,7 +45,7 @@ class AnalysisResultWidget extends StatelessWidget {
       child: (imageFile == null)
           ? Column(
               children: [
-                Lottie.asset('assets/lotties/63534-image-preloader.json'),
+                Lottie.asset('assets/lotties/loader.json'),
                 const Text(
                   'Unggah foto wajahmu untuk melakukan analisis',
                   style: TextStyle(
@@ -60,7 +62,7 @@ class AnalysisResultWidget extends StatelessWidget {
                 CustomPaint(
                   foregroundPainter: DrawInCanvas(
                     color: canvasColor,
-                    strokeWidth: 3,
+                    strokeWidth: strokeWidth,
                     objects: objectData,
                   ),
                   child: Stack(

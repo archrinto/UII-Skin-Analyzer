@@ -62,14 +62,11 @@ class ChartWidget extends StatelessWidget {
       case 1:
         text = '1';
         break;
-      case 8:
-        text = '8';
+      case 10:
+        text = '10';
         break;
-      case 15:
-        text = '15';
-        break;
-      case 23:
-        text = '23';
+      case 20:
+        text = '20';
         break;
       case 30:
         text = '30';
@@ -99,7 +96,7 @@ class ChartWidget extends StatelessWidget {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: 7,
+          horizontalInterval: 10,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: Colors.grey,

@@ -1,5 +1,6 @@
 class AnalysisHistory {
   final String id;
+  final String email;
   final String imagePath;
   final String? jerawatResult;
   final String? keriputResult;
@@ -10,6 +11,7 @@ class AnalysisHistory {
 
   AnalysisHistory({
     required this.id,
+    required this.email,
     required this.imagePath,
     this.jerawatResult,
     this.keriputResult,

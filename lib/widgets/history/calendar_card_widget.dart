@@ -5,8 +5,8 @@ import './jerawat_history_screen.dart';
 import './calendar_widget.dart';
 import '../../models/analysis_history.dart';
 
-class CalendarCardHistory extends StatelessWidget {
-  CalendarCardHistory({super.key, required this.analysisHistory});
+class CalendarCardWidget extends StatelessWidget {
+  CalendarCardWidget({super.key, required this.analysisHistory});
 
   final List<AnalysisHistory> analysisHistory;
 

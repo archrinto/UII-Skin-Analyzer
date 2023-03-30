@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../main_screen.dart';
 import './onboarding_item_widget.dart';
 import '../utility/dialog_widget.dart';
 
@@ -38,8 +39,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildPageIndicator(BuildContext context) {
     if (_pageIndex == _onboardData.length - 1) {
       return ElevatedButton(
-        onPressed: () async {
-          buildDialog(context);
+        onPressed: () {
+          buildDialog(
+            context: context,
+            title: 'Informed Consent',
+            actionButton: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: buildActionButton(context, 'Tidak Setuju'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
+                },
+                child: buildActionButton(context, 'Setuju'),
+              ),
+            ],
+            content: const Text(
+              'Aplikasi ini mengambil informasi foto wajah dan kulit anda. Informasi tersebut dikumpulkan oleh UII Skin Analyzer dan diperlukan agar aplikasi ini dapat bekerja. Data anda tidak dapat dilihat oleh pengguna lain.\n\nSaya setuju aplikasi UII Skin Analyzer memproses informasi saya agar aplikasi ini dapat bekerja, seperti yang dijelaskan di atas. Saya mengerti bahwa respon saya akan disimpan oleh aplikasi ini. Saya berumur 12-60 tahun.\n\nJika anda tidak ingin memberikan informasi personal anda, maka sebaiknya anda tidak menggunakan aplikasi ini karena informasi tersebut dibutuhkan agar aplikasi ini dapat bekerja.',
+              textAlign: TextAlign.justify,
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

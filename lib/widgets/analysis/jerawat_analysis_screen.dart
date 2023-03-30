@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
@@ -10,10 +12,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 import './analysis_result_widget.dart';
+import '../utility/dialog_widget.dart';
 import '../utility/camera_screen.dart';
 import '../../helpers/db.dart';
 import '../../helpers/json.dart';
 import '../../models/deteksi_model.dart';
+import '../../widgets/main_screen.dart';
 
 class JerawatAnalysisScreen extends StatefulWidget {
   const JerawatAnalysisScreen({super.key});
@@ -25,6 +29,9 @@ class JerawatAnalysisScreen extends StatefulWidget {
 }
 
 class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
+  FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
   File? _imageFile;
   List<DeteksiModel> _jerawatData = [];
   int _jerawatCount = 0;
@@ -93,21 +100,35 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     var searchDay = await DBHelper.getSingleData(
       'analysis_results',
       ['id'],
-      dateFormat,
+      '$dateFormat${auth.currentUser!.email!}',
     );
 
+    // CollectionReference users = firestore.collection('users');
+    // DocumentReference docRef = users.doc(auth.currentUser!.uid);
+    // DocumentSnapshot<Object?> docSnapshot = await docRef.get();
+    // Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+
     if (searchDay.isNotEmpty) {
-      var searchFile = await DBHelper.getSingleData('analysis_results', ['id', 'image_path'], dateFormat);
+      var searchFile = await DBHelper.getSingleData('analysis_results', ['id', 'image_path'], '$dateFormat${auth.currentUser!.email!}');
       var searchedImage = searchFile[0]['image_path'];
       if (searchedImage != savedImage.path && File(searchedImage).existsSync()) {
         File? file = File(searchedImage);
         await file.delete();
         file = null;
       }
+
+      // await users.doc(auth.currentUser!.uid).update({
+      //   'jerawatCount': data['jerawatCount'] + _jerawatCount,
+      // });
+    } else {
+      // await users.doc(auth.currentUser!.uid).update({
+      //   'jerawatCount': data['jerawatCount'] + _jerawatCount,
+      // });
     }
 
     await DBHelper.insert('analysis_results', {
-      'id': dateFormat,
+      'id': '$dateFormat${auth.currentUser!.email!}',
+      'email': auth.currentUser!.email!,
       'image_path': savedImage.path,
       'jerawat_result': jsonData,
       'date': dateNow.toString(),
@@ -128,7 +149,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.100.13:5000/deteksi_jerawat"),
+      Uri.parse("http://192.168.7.138:5000/deteksi_jerawat"),
     );
     request.files.add(
       http.MultipartFile(
@@ -185,6 +206,79 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     _cachingImage(imageFile);
   }
 
+  void _onPressHelpButton() {
+    buildDialog(
+      context: context,
+      title: 'Panduan Analisis',
+      content: RichText(
+        text: TextSpan(children: [
+          const TextSpan(
+              text: 'Galeri ',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+          WidgetSpan(
+            child: Image.asset(
+              'assets/images/icons/gallery.png',
+              width: 15,
+            ),
+          ),
+          const TextSpan(
+              text: ': Tombol ini berfungsi untuk memilih gambar pada galeri\n\n',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+          const TextSpan(
+              text: 'Kamera ',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+          WidgetSpan(
+            child: Image.asset(
+              'assets/images/icons/camera.png',
+              width: 15,
+            ),
+          ),
+          const TextSpan(
+              text: ': Tombol ini berfungsi untuk mengambil gambar dari kamera\n\n',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+          const TextSpan(
+              text: 'Analisis ',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+          WidgetSpan(
+            child: Image.asset(
+              'assets/images/icons/analyze.png',
+              width: 15,
+            ),
+          ),
+          const TextSpan(
+              text: ': Tombol ini berfungsi untuk menganalisis gambar yang sudah terpilih baik itu melalui galeri maupun kamera\n',
+              style: TextStyle(
+                color: Colors.black,
+                height: 1.5,
+              )),
+        ]),
+      ),
+      actionButton: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: buildActionButton(context, 'Tutup'),
+        ),
+      ],
+    );
+  }
+
   Widget _saveImageButton() {
     return _jerawatData.isNotEmpty
         ? Positioned(
@@ -194,7 +288,34 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
               width: 40,
               height: 40,
               child: ElevatedButton(
-                onPressed: _isUploadingImage ? null : () => _saveToDB(),
+                onPressed: _isUploadingImage
+                    ? null
+                    : () {
+                        if (auth.currentUser == null) {
+                          buildDialog(
+                            context: context,
+                            title: 'Pesan',
+                            content: const Text(
+                              'Untuk menyimpan hasil analisis, anda harus masuk terlebih dahulu. Hasil analisis beserta detailnya hanya dapat diakses oleh perangkat anda saja.',
+                              textAlign: TextAlign.justify,
+                            ),
+                            actionButton: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+
+                                  Navigator.of(context)
+                                      .pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)));
+                                },
+                                child: buildActionButton(context, 'Masuk'),
+                              ),
+                            ],
+                          );
+                        } else {
+                          _saveToDB();
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0E6CDB),
                   foregroundColor: Colors.white,
@@ -238,13 +359,16 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
           ),
         ),
         centerTitle: true,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Icon(
-              Icons.help,
-              color: Colors.amber,
-              size: 36,
+            padding: const EdgeInsets.only(right: 4.0),
+            child: IconButton(
+              onPressed: _onPressHelpButton,
+              icon: const Icon(
+                Icons.help,
+                color: Colors.amber,
+                size: 36,
+              ),
             ),
           ),
         ],
@@ -253,6 +377,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: AnalysisResultWidget(
+          strokeWidth: 3,
           isServerError: _isServerError,
           imageFile: _imageFile,
           objectData: _jerawatData,

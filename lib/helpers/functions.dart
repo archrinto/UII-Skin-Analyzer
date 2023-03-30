@@ -4,12 +4,13 @@ import './db.dart';
 import '../models/analysis_history.dart';
 import '../models/deteksi_model.dart';
 
-Future<List<AnalysisHistory>> fetchAndSetAnalysisHistory() async {
+Future<List<AnalysisHistory>> fetchAndSetAnalysisHistory(String email) async {
   final rawData = await DBHelper.getData('analysis_results');
   return rawData
       .map(
         (data) => AnalysisHistory(
           id: data['id'],
+          email: data['email'],
           imagePath: data['image_path'],
           jerawatResult: data['jerawat_result'],
           keriputResult: data['keriput_result'],

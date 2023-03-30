@@ -1,4 +1,4 @@
-import 'package:uii_skin_analyzer/models/deteksi_model.dart';
+import '../models/deteksi_model.dart';
 
 class JSONResult {
   DeteksiObjek? deteksiObjek;

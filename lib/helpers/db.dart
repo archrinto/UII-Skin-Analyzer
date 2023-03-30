@@ -7,7 +7,7 @@ class DBHelper {
     final dbPath = await sql.getDatabasesPath();
     return sql.openDatabase(path.join(dbPath, 'skin_analyzer.db'), onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE analysis_results(id TEXT PRIMARY KEY NOT NULL, image_path TEXT NOT NULL, jerawat_result TEXT, keriput_result TEXT, kemerahan_result TEXT, bercak_hitam_result TEXT, jenis_kulit_result TEXT, date TEXT NOT NULL)',
+        'CREATE TABLE analysis_results(id TEXT PRIMARY KEY NOT NULL, email TEXT NOT NULL, image_path TEXT NOT NULL, jerawat_result TEXT, keriput_result TEXT, kemerahan_result TEXT, bercak_hitam_result TEXT, jenis_kulit_result TEXT, date TEXT NOT NULL)',
       );
     }, version: 1);
   }

@@ -2,7 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:uii_skin_analyzer/models/deteksi_model.dart';
+
+import '../models/deteksi_model.dart';
 
 class DrawInCanvas extends CustomPainter {
   DrawInCanvas({required this.objects, required this.color, required this.strokeWidth});
