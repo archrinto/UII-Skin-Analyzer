@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import './analysis_result_widget.dart';
 import '../utility/dialog_widget.dart';
@@ -32,11 +33,29 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  late TutorialCoachMark tutorialCoachMark;
+
+  GlobalKey analysisButtonKey = GlobalKey();
+
   File? _imageFile;
   List<DeteksiModel> _jerawatData = [];
   int _jerawatCount = 0;
   bool _isServerError = false;
   bool _isUploadingImage = false;
+
+  Future<void> _fetchCachedImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final imagePath = prefs.getString('cachedImage');
+    if (imagePath == null) {
+      createTutorial();
+      showTutorial();
+      return;
+    }
+
+    setState(() {
+      _imageFile = File(imagePath);
+    });
+  }
 
   Future<void> _cachingImage(XFile imageFile) async {
     if (_imageFile != null) {
@@ -66,18 +85,6 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     });
   }
 
-  Future<void> _fetchCachedImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('cachedImage');
-    if (imagePath == null) {
-      return;
-    }
-
-    setState(() {
-      _imageFile = File(imagePath);
-    });
-  }
-
   Future<void> _saveToDB() async {
     setState(() {
       _isUploadingImage = true;
@@ -103,11 +110,6 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       '$dateFormat${auth.currentUser!.email!}',
     );
 
-    // CollectionReference users = firestore.collection('users');
-    // DocumentReference docRef = users.doc(auth.currentUser!.uid);
-    // DocumentSnapshot<Object?> docSnapshot = await docRef.get();
-    // Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
-
     if (searchDay.isNotEmpty) {
       var searchFile = await DBHelper.getSingleData('analysis_results', ['id', 'image_path'], '$dateFormat${auth.currentUser!.email!}');
       var searchedImage = searchFile[0]['image_path'];
@@ -116,14 +118,6 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
         await file.delete();
         file = null;
       }
-
-      // await users.doc(auth.currentUser!.uid).update({
-      //   'jerawatCount': data['jerawatCount'] + _jerawatCount,
-      // });
-    } else {
-      // await users.doc(auth.currentUser!.uid).update({
-      //   'jerawatCount': data['jerawatCount'] + _jerawatCount,
-      // });
     }
 
     await DBHelper.insert('analysis_results', {
@@ -132,6 +126,15 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       'image_path': savedImage.path,
       'jerawat_result': jsonData,
       'date': dateNow.toString(),
+    });
+
+    CollectionReference users = firestore.collection('users');
+    DocumentReference docRef = users.doc(auth.currentUser!.uid);
+    DocumentSnapshot<Object?> docSnapshot = await docRef.get();
+    Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+
+    await users.doc(auth.currentUser!.uid).update({
+      'analysisCount': data['analysisCount'] + 1,
     });
 
     setState(() {
@@ -149,7 +152,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.7.138:5000/deteksi_jerawat"),
+      Uri.parse("http://192.168.1.7:5000/deteksi_jerawa"),
     );
     request.files.add(
       http.MultipartFile(
@@ -190,13 +193,74 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
   }
 
   void _pickImage(int index, BuildContext context) async {
+    var navigator = Navigator.of(context);
     final ImagePicker picker = ImagePicker();
     XFile? imageFile;
 
     if (index == 0) {
       imageFile = await picker.pickImage(source: ImageSource.gallery);
     } else if (index == 1) {
-      imageFile = await Navigator.push<XFile>(context, MaterialPageRoute(builder: (_) => const CameraScreen()));
+      await buildDialog(
+        context: context,
+        title: "Panduan Pengambilan Foto",
+        content: SizedBox(
+          height: MediaQuery.of(context).size.height / 2.75,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('1.'),
+                  Flexible(child: Text('Pastikan wajah terlihat dengan jelas.')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('2.'),
+                  Flexible(child: Text('Pastikan dahi tidak tertutup oleh bayangan.')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('3.'),
+                  Flexible(child: Text('Untuk hasil yang maksimal, ambil gambar pada ruangan yang memiliki pencahayaan cukup.')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('4.'),
+                  Flexible(child: Text('Posisikan wajah pada garis bantu yang ada.')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('5.'),
+                  Flexible(child: Text('Ambil gambar dengan ekspresi yang natural.')),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actionButton: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: buildActionButton(context, 'Mengerti'),
+          ),
+        ],
+      );
+
+      imageFile = await navigator.push(MaterialPageRoute(builder: (_) => const CameraScreen()));
     }
 
     if (imageFile == null) {
@@ -290,7 +354,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
               child: ElevatedButton(
                 onPressed: _isUploadingImage
                     ? null
-                    : () {
+                    : () async {
                         if (auth.currentUser == null) {
                           buildDialog(
                             context: context,
@@ -313,7 +377,27 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
                             ],
                           );
                         } else {
-                          _saveToDB();
+                          await _saveToDB();
+                          buildDialog(
+                            context: context,
+                            title: 'Hasil analisis berhasil disimpan',
+                            content: const Text(
+                              'Anda dapat melihat hasil analisis pada menu riwayat. Setiap hari, anda hanya dapat menyimpan satu hasil analisis saja, jika anda ingin menganalisis lagi dan menyimpan hasil-nya maka hasil yang tersimpan sebelumnya pada hari itu akan terganti dengan hasil analisis yang terbaru.',
+                              textAlign: TextAlign.justify,
+                            ),
+                            actionButton: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+
+                                  Navigator.of(context)
+                                      .pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 1)));
+                                },
+                                child: buildActionButton(context, 'Lihat'),
+                              ),
+                            ],
+                          );
                         }
                       },
                 style: ElevatedButton.styleFrom(
@@ -328,6 +412,72 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
             ),
           )
         : const SizedBox();
+  }
+
+  void showTutorial() {
+    tutorialCoachMark.show(context: context);
+  }
+
+  void createTutorial() async {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: _createTargets(),
+      colorShadow: Colors.black,
+      hideSkip: true,
+      // textSkip: "Lewati",
+      // textStyleSkip: const TextStyle(
+      //   color: Colors.white,
+      //   fontSize: 14.0,
+      //   fontWeight: FontWeight.bold,
+      // ),
+      paddingFocus: 15,
+      opacityShadow: 0.9,
+      onFinish: () {
+        print("finish");
+      },
+      onClickTarget: (target) {
+        print('onClickTarget: $target');
+      },
+      onClickTargetWithTapPosition: (target, tapDetails) {
+        print("target: $target");
+        print("clicked at position local: ${tapDetails.localPosition} - global: ${tapDetails.globalPosition}");
+      },
+      onClickOverlay: (target) {
+        print('onClickOverlay: $target');
+      },
+      onSkip: () {
+        print("skip");
+      },
+    );
+  }
+
+  List<TargetFocus> _createTargets() {
+    List<TargetFocus> targets = [];
+    targets.add(
+      TargetFocus(
+        enableOverlayTab: true,
+        identify: "analysisButton",
+        keyTarget: analysisButtonKey,
+        alignSkip: Alignment.bottomRight,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return const Text(
+                "Tekan tombol analisis untuk menganalisis gambar. Jika ingin mengganti gambar, Anda dapat menekan tombol galeri atau kamera.",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.justify,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+
+    return targets;
   }
 
   @override
@@ -420,6 +570,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
         width: 80,
         height: 80,
         child: FittedBox(
+          key: analysisButtonKey,
           child: FloatingActionButton(
             backgroundColor: _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
             onPressed: (_imageFile == null || _isUploadingImage)

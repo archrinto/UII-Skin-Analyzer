@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../helpers/functions.dart';
@@ -73,7 +74,22 @@ class JerawatHistoryScreen extends StatelessWidget {
                 valueListenable: _selectedEvent,
                 builder: (ctx, value, _) {
                   return (value.isEmpty)
-                      ? const SizedBox()
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Column(
+                            children: [
+                              Lottie.asset('assets/lotties/empty.json'),
+                              const Text(
+                                'Anda tidak menyimpan hasil analisis pada hari ini',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              )
+                            ],
+                          ),
+                        )
                       : AnalysisResultWidget(
                           strokeWidth: 3,
                           notificationMessage: 'Terdeteksi ${generateJerawats(value[0].jerawatResult!).length} Jerawat',

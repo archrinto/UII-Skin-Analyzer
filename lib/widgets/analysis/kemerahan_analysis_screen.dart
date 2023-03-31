@@ -46,7 +46,7 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.100.13:5000/deteksi_kemerahan"),
+      Uri.parse("http://192.168.1.7:5000/deteksi_kemerahan"),
     );
     request.files.add(
       http.MultipartFile(

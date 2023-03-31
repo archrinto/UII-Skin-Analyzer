@@ -46,7 +46,7 @@ class _KeriputAnalysisScreenState extends State<KeriputAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.100.13:5000/deteksi_keriput"),
+      Uri.parse("http://192.168.1.7:5000/deteksi_keriput"),
     );
     request.files.add(
       http.MultipartFile(

@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../main_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -39,6 +41,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'name': nameController.text,
           'birthDate': birthDateController.text,
         });
+
+        setState(() {
+          isLoading = false;
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Data berhasil diedit'),
+            backgroundColor: Color(0xFF62BBE2),
+            duration: Duration(seconds: 2),
+          ),
+        );
       } else {
         UserCredential userCredential = await auth.createUserWithEmailAndPassword(
           email: emailController.text,
@@ -48,22 +64,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await users.doc(userCredential.user!.uid).set({
           'name': nameController.text,
           'birthDate': birthDateController.text,
-          'jerawatCount': 0,
+          'analysisCount': 0,
         });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selamat Datang'),
+            backgroundColor: Color(0xFF62BBE2),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
       }
-
-      setState(() {
-        isLoading = false;
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selamat Datang'),
-          backgroundColor: Color(0xFF62BBE2),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -90,12 +104,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         password: passwordController.text,
       );
 
-      setState(() {
-        isLoading = false;
-      });
-
-      _changeSignedInState();
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           duration: Duration(seconds: 2),
         ),
       );
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
     } on FirebaseAuthException catch (e) {
       setState(() {
         isLoading = false;
@@ -130,6 +139,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       _changeSignedInState();
       await auth.signOut();
+
+      nameController.text = '';
+      birthDateController.text = '';
+      emailController.text = '';
+      passwordController.text = '';
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
