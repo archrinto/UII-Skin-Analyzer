@@ -33,12 +33,12 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  late TutorialCoachMark tutorialCoachMark;
+  TutorialCoachMark? tutorialCoachMark;
 
   GlobalKey analysisButtonKey = GlobalKey();
 
   File? _imageFile;
-  List<DeteksiModel> _jerawatData = [];
+  List<DeteksiModel>? _jerawatData;
   int _jerawatCount = 0;
   bool _isServerError = false;
   bool _isUploadingImage = false;
@@ -48,7 +48,6 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     final imagePath = prefs.getString('cachedImage');
     if (imagePath == null) {
       await Future.delayed(const Duration(milliseconds: 500));
-      createTutorial();
       showTutorial();
       return;
     }
@@ -81,7 +80,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       _imageFile = savedImage;
       _isServerError = false;
       _isUploadingImage = false;
-      _jerawatData = [];
+      _jerawatData = null;
       _jerawatCount = 0;
     });
   }
@@ -148,19 +147,18 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       _isUploadingImage = true;
     });
 
-    File convertedImage = File(_imageFile!.path);
     var count = 0;
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.0.105:5000/deteksi_jerawat"),
+      Uri.parse("http://192.168.0.104:5000/deteksi_jerawat"),
     );
     request.files.add(
       http.MultipartFile(
         'file[]',
-        convertedImage.readAsBytes().asStream(),
-        convertedImage.lengthSync(),
-        filename: convertedImage.path,
+        _imageFile!.readAsBytes().asStream(),
+        _imageFile!.lengthSync(),
+        filename: _imageFile!.path,
       ),
     );
 
@@ -187,7 +185,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       setState(() {
         _isUploadingImage = false;
         _isServerError = true;
-        _jerawatData = [];
+        _jerawatData = null;
         _jerawatCount = 0;
       });
     }
@@ -345,84 +343,80 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
   }
 
   Widget _saveImageButton() {
-    return _jerawatData.isNotEmpty
-        ? Positioned(
-            right: 0,
-            top: 0,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: _isUploadingImage
-                    ? null
-                    : () async {
-                        if (auth.currentUser == null) {
-                          buildDialog(
-                            context: context,
-                            title: 'Pesan',
-                            content: const Text(
-                              'Untuk menyimpan hasil analisis, anda harus masuk terlebih dahulu. Hasil analisis beserta detailnya hanya dapat diakses oleh perangkat anda saja.',
-                              textAlign: TextAlign.justify,
-                            ),
-                            actionButton: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
+    if (_jerawatData != null && _jerawatData!.isNotEmpty) {
+      return Positioned(
+        right: 0,
+        top: 0,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: ElevatedButton(
+            onPressed: _isUploadingImage
+                ? null
+                : () async {
+                    if (auth.currentUser == null) {
+                      buildDialog(
+                        context: context,
+                        title: 'Pesan',
+                        content: const Text(
+                          'Untuk menyimpan hasil analisis, anda harus masuk terlebih dahulu. Hasil analisis beserta detailnya hanya dapat diakses oleh perangkat anda saja.',
+                          textAlign: TextAlign.justify,
+                        ),
+                        actionButton: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
 
-                                  Navigator.of(context)
-                                      .pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)));
-                                },
-                                child: buildActionButton(context, 'Masuk'),
-                              ),
-                            ],
-                          );
-                        } else {
-                          await _saveToDB();
-                          if (!mounted) {
-                            return;
-                          }
-                          buildDialog(
-                            context: context,
-                            title: 'Hasil analisis berhasil disimpan',
-                            content: const Text(
-                              'Anda dapat melihat hasil analisis pada menu riwayat. Setiap hari, anda hanya dapat menyimpan satu hasil analisis saja, jika anda ingin menganalisis lagi dan menyimpan hasil-nya maka hasil yang tersimpan sebelumnya pada hari itu akan terganti dengan hasil analisis yang terbaru.',
-                              textAlign: TextAlign.justify,
-                            ),
-                            actionButton: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)));
+                            },
+                            child: buildActionButton(context, 'Masuk'),
+                          ),
+                        ],
+                      );
+                    } else {
+                      await _saveToDB();
+                      if (!mounted) {
+                        return;
+                      }
+                      buildDialog(
+                        context: context,
+                        title: 'Hasil analisis berhasil disimpan',
+                        content: const Text(
+                          'Anda dapat melihat hasil analisis pada menu riwayat. Setiap hari, anda hanya dapat menyimpan satu hasil analisis saja, jika anda ingin menganalisis lagi dan menyimpan hasil-nya maka hasil yang tersimpan sebelumnya pada hari itu akan terganti dengan hasil analisis yang terbaru.',
+                          textAlign: TextAlign.justify,
+                        ),
+                        actionButton: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
 
-                                  Navigator.of(context)
-                                      .pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 1)));
-                                },
-                                child: buildActionButton(context, 'Lihat'),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0E6CDB),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.all(0),
-                  disabledBackgroundColor: const Color(0xFF0E6CDB),
-                  disabledForegroundColor: Colors.white,
-                ),
-                child: const Icon(Icons.save),
-              ),
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 1)));
+                            },
+                            child: buildActionButton(context, 'Lihat'),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0E6CDB),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.all(0),
+              disabledBackgroundColor: const Color(0xFF0E6CDB),
+              disabledForegroundColor: Colors.white,
             ),
-          )
-        : const SizedBox();
+            child: const Icon(Icons.save),
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox();
+    }
   }
 
   void showTutorial() {
-    tutorialCoachMark.show(context: context);
-  }
-
-  void createTutorial() async {
     tutorialCoachMark = TutorialCoachMark(
       targets: _createTargets(),
       colorShadow: Colors.black,
@@ -430,6 +424,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       paddingFocus: 15,
       opacityShadow: 0.9,
     );
+
+    tutorialCoachMark!.show(context: context);
   }
 
   List<TargetFocus> _createTargets() {
@@ -471,124 +467,133 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          color: Colors.black,
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Jerawat',
-          style: TextStyle(
+    return WillPopScope(
+      onWillPop: () async {
+        if (tutorialCoachMark != null) {
+          tutorialCoachMark!.finish();
+        }
+
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed: () {
+              Navigator.pop(context);
+            },
             color: Colors.black,
-            fontWeight: FontWeight.normal,
-            fontSize: 22,
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Jerawat',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.normal,
+              fontSize: 22,
+            ),
+          ),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: IconButton(
+                onPressed: _onPressHelpButton,
+                icon: const Icon(
+                  Icons.help,
+                  color: Colors.amber,
+                  size: 36,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFEFF5FF),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: AnalysisResultWidget(
+            strokeWidth: 3,
+            isServerError: _isServerError,
+            imageFile: _imageFile,
+            objectData: _jerawatData,
+            notificationMessage: 'Terdeteksi $_jerawatCount Jerawat',
+            saveResultButton: _saveImageButton(),
+            canvasColor: const Color(0xff1572A1),
           ),
         ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 4.0),
-            child: IconButton(
-              onPressed: _onPressHelpButton,
-              icon: const Icon(
-                Icons.help,
-                color: Colors.amber,
-                size: 36,
+        bottomNavigationBar: BottomNavigationBar(
+          iconSize: 24,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.black,
+          onTap: _isUploadingImage
+              ? null
+              : (value) {
+                  _pickImage(value, context);
+                },
+          items: const [
+            BottomNavigationBarItem(
+              label: 'Galeri',
+              icon: ImageIcon(
+                AssetImage(
+                  'assets/images/icons/gallery.png',
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      backgroundColor: const Color(0xFFEFF5FF),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: AnalysisResultWidget(
-          strokeWidth: 3,
-          isServerError: _isServerError,
-          imageFile: _imageFile,
-          objectData: _jerawatData,
-          notificationMessage: 'Terdeteksi $_jerawatCount Jerawat',
-          saveResultButton: _saveImageButton(),
-          canvasColor: const Color(0xff1572A1),
+            BottomNavigationBarItem(
+              label: 'Kamera',
+              icon: ImageIcon(
+                AssetImage(
+                  'assets/images/icons/camera.png',
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        iconSize: 24,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black,
-        onTap: _isUploadingImage
-            ? null
-            : (value) {
-                _pickImage(value, context);
-              },
-        items: const [
-          BottomNavigationBarItem(
-            label: 'Galeri',
-            icon: ImageIcon(
-              AssetImage(
-                'assets/images/icons/gallery.png',
-              ),
-            ),
-          ),
-          BottomNavigationBarItem(
-            label: 'Kamera',
-            icon: ImageIcon(
-              AssetImage(
-                'assets/images/icons/camera.png',
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: SizedBox(
-        width: 80,
-        height: 80,
-        key: analysisButtonKey,
-        child: FittedBox(
-          child: FloatingActionButton(
-            backgroundColor: _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
-            onPressed: (_imageFile == null || _isUploadingImage)
-                ? null
-                : () async {
-                    await _uploadImage();
-                  },
-            child: _isUploadingImage
-                ? const Padding(
-                    padding: EdgeInsets.all(18.0),
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        child: Image.asset(
-                          'assets/images/icons/analyze.png',
+        floatingActionButton: SizedBox(
+          width: 80,
+          height: 80,
+          key: analysisButtonKey,
+          child: FittedBox(
+            child: FloatingActionButton(
+              backgroundColor: _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
+              onPressed: (_imageFile == null || _isUploadingImage)
+                  ? null
+                  : () async {
+                      await _uploadImage();
+                    },
+              child: _isUploadingImage
+                  ? const Padding(
+                      padding: EdgeInsets.all(18.0),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          child: Image.asset(
+                            'assets/images/icons/analyze.png',
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 2,
-                      ),
-                      const Text(
-                        'Analisis',
-                        style: TextStyle(fontSize: 8),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        const Text(
+                          'Analisis',
+                          style: TextStyle(fontSize: 8),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

@@ -23,7 +23,7 @@ class AnalysisResultWidget extends StatelessWidget {
   final bool isServerError;
   final String notificationMessage;
   final File? imageFile;
-  final List<DeteksiModel> objectData;
+  final List<DeteksiModel>? objectData;
   final Widget saveResultButton;
   final Color canvasColor;
 
@@ -33,7 +33,7 @@ class AnalysisResultWidget extends StatelessWidget {
           cardColor: Color(0xFFC61717), cardIcon: Icons.cancel_outlined, cardText: 'Maaf, Server sedang tidak tersedia');
     }
 
-    if (objectData.isEmpty) return const SizedBox();
+    if (objectData == null) return const SizedBox();
 
     return NotificationCard(cardColor: const Color(0xFF17C672), cardIcon: Icons.check_circle_outline, cardText: notificationMessage);
   }
@@ -60,11 +60,13 @@ class AnalysisResultWidget extends StatelessWidget {
               children: [
                 _buildNotificationCard(),
                 CustomPaint(
-                  foregroundPainter: DrawInCanvas(
-                    color: canvasColor,
-                    strokeWidth: strokeWidth,
-                    objects: objectData,
-                  ),
+                  foregroundPainter: objectData == null
+                      ? null
+                      : DrawInCanvas(
+                          color: canvasColor,
+                          strokeWidth: strokeWidth,
+                          objects: objectData!,
+                        ),
                   child: Stack(
                     children: [
                       Container(
