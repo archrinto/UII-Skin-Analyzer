@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
+// https://blog.logrocket.com/flutter-camera-plugin-deep-dive-with-examples/
 class CameraScreen extends StatefulWidget {
   const CameraScreen({Key? key}) : super(key: key);
 
@@ -44,7 +45,7 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
       }
 
       return file;
-    } on CameraException catch (e) {
+    } on CameraException catch (_) {
       // print('Error occured while taking picture: $e');
       return null;
     }
@@ -74,7 +75,8 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
 
       _currentFlashMode = FlashMode.off;
       await cameraController.setFlashMode(_currentFlashMode!);
-    } on CameraException catch (e) {
+    } on CameraException catch (_) {
+      Navigator.pop(context);
       // print('Error initializing camera: $e');
     }
 
@@ -106,7 +108,8 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
           _onNewCameraSelected(_cameras[1]);
         },
       );
-    } on CameraException catch (e) {
+    } on CameraException catch (_) {
+      Navigator.pop(context);
       // print('Error in fetching the cameras: $e');
     }
 
@@ -219,9 +222,13 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
                         ),
                       ),
                       Center(
-                        child: Image.asset(
-                          'assets/images/camera_aim.png',
-                          fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height / 2,
+                          child: Image.asset(
+                            'assets/images/camera_aim.png',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ],

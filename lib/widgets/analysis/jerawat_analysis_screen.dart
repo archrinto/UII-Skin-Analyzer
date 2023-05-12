@@ -47,6 +47,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     final prefs = await SharedPreferences.getInstance();
     final imagePath = prefs.getString('cachedImage');
     if (imagePath == null) {
+      await Future.delayed(const Duration(milliseconds: 500));
       createTutorial();
       showTutorial();
       return;
@@ -134,7 +135,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
 
     await users.doc(auth.currentUser!.uid).update({
-      'analysisCount': data['analysisCount'] + 1,
+      'historyCount': data['historyCount'] + 1,
     });
 
     setState(() {
@@ -152,7 +153,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.1.7:5000/deteksi_jerawa"),
+      Uri.parse("http://192.168.0.105:5000/deteksi_jerawat"),
     );
     request.files.add(
       http.MultipartFile(
@@ -204,7 +205,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
         context: context,
         title: "Panduan Pengambilan Foto",
         content: SizedBox(
-          height: MediaQuery.of(context).size.height / 2.75,
+          height: MediaQuery.of(context).size.height / 2.9,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -378,6 +379,9 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
                           );
                         } else {
                           await _saveToDB();
+                          if (!mounted) {
+                            return;
+                          }
                           buildDialog(
                             context: context,
                             title: 'Hasil analisis berhasil disimpan',
@@ -423,30 +427,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       targets: _createTargets(),
       colorShadow: Colors.black,
       hideSkip: true,
-      // textSkip: "Lewati",
-      // textStyleSkip: const TextStyle(
-      //   color: Colors.white,
-      //   fontSize: 14.0,
-      //   fontWeight: FontWeight.bold,
-      // ),
       paddingFocus: 15,
       opacityShadow: 0.9,
-      onFinish: () {
-        print("finish");
-      },
-      onClickTarget: (target) {
-        print('onClickTarget: $target');
-      },
-      onClickTargetWithTapPosition: (target, tapDetails) {
-        print("target: $target");
-        print("clicked at position local: ${tapDetails.localPosition} - global: ${tapDetails.globalPosition}");
-      },
-      onClickOverlay: (target) {
-        print('onClickOverlay: $target');
-      },
-      onSkip: () {
-        print("skip");
-      },
     );
   }
 
@@ -569,8 +551,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
       floatingActionButton: SizedBox(
         width: 80,
         height: 80,
+        key: analysisButtonKey,
         child: FittedBox(
-          key: analysisButtonKey,
           child: FloatingActionButton(
             backgroundColor: _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
             onPressed: (_imageFile == null || _isUploadingImage)

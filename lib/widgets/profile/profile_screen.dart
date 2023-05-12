@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 import '../main_screen.dart';
@@ -64,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await users.doc(userCredential.user!.uid).set({
           'name': nameController.text,
           'birthDate': birthDateController.text,
-          'analysisCount': 0,
+          'historyCount': 0,
         });
 
         if (!mounted) return;
@@ -144,6 +147,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       birthDateController.text = '';
       emailController.text = '';
       passwordController.text = '';
+
+      final prefs = await SharedPreferences.getInstance();
+      final imagePath = prefs.getString('cachedImage');
+
+      if (imagePath != null) {
+        File cachedImage = File(imagePath);
+        cachedImage.delete();
+        prefs.remove('cachedImage');
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -174,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return 'Masukkan email';
         }
         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-          return 'Masukkan email yang benar';
+          return 'Masukkan format email yang benar';
         }
         return null;
       },
@@ -341,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         labelText: 'Tanggal Lahir',
                         hintText: 'YYYY/MM/DD',
                       ),
-                      keyboardType: TextInputType.datetime,
+                      keyboardType: TextInputType.text,
                       controller: birthDateController,
                     ),
                     const SizedBox(height: 30),

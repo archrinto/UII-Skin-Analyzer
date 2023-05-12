@@ -46,7 +46,7 @@ class _BercakHitamAnalysisScreenState extends State<BercakHitamAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.1.7:5000/deteksi_bintik_hitam"),
+      Uri.parse("http://192.168.0.105:5000/deteksi_bintik_hitam"),
     );
     request.files.add(
       http.MultipartFile(
