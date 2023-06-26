@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:uii_skin_analyzer/widgets/utility/dialog_widget.dart';
 
 import './analysis_result_widget.dart';
 import '../../helpers/json.dart';
@@ -16,12 +17,13 @@ class KemerahanAnalysisScreen extends StatefulWidget {
   static const routeName = '/kemerahan-screen';
 
   @override
-  State<KemerahanAnalysisScreen> createState() => _KemerahanAnalysisScreenState();
+  State<KemerahanAnalysisScreen> createState() =>
+      _KemerahanAnalysisScreenState();
 }
 
 class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
   File? _imageFile;
-  List<DeteksiModel> _kemerahanData = [];
+  List<DeteksiModel>? _kemerahanData;
   int _kemerahanCount = 0;
   bool _isServerError = false;
   bool _isUploadingImage = false;
@@ -46,7 +48,7 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.0.105:5000/deteksi_kemerahan"),
+      Uri.parse("http://192.168.0.114:5000/deteksi_kemerahan"), // URL API local
     );
     request.files.add(
       http.MultipartFile(
@@ -83,8 +85,6 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
       });
     }
   }
-
-  void _pickImage(int index, BuildContext context) {}
 
   @override
   void initState() {
@@ -144,11 +144,24 @@ class _KemerahanAnalysisScreenState extends State<KemerahanAnalysisScreen> {
         unselectedFontSize: 12,
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.black,
-        onTap: _isUploadingImage
-            ? null
-            : (value) {
-                _pickImage(value, context);
-              },
+        onTap: (value) {
+          buildDialog(
+            context: context,
+            title: 'Pesan',
+            content: const Text(
+              'Tidak bisa mengganti gambar',
+              textAlign: TextAlign.justify,
+            ),
+            actionButton: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: buildActionButton(context, 'OK'),
+              ),
+            ],
+          );
+        },
         items: const [
           BottomNavigationBarItem(
             label: 'Galeri',

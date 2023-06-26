@@ -17,7 +17,7 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  List<AnalysisHistory> analysisHistory = [];
+  List<AnalysisHistory> _analysisHistory = [];
 
   bool isFetching = false;
 
@@ -48,7 +48,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
         )
         .toList();
 
-    analysisHistory = rawAnalysisHistory.where((obj) => obj.email == auth.currentUser!.email).toList();
+    _analysisHistory = rawAnalysisHistory
+        .where((obj) => obj.email == auth.currentUser!.email)
+        .toList();
 
     setState(() {
       isFetching = false;
@@ -90,8 +92,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               )
             : Column(
                 children: [
-                  CalendarCardWidget(analysisHistory: analysisHistory),
-                  ChartCardWidget(analysisHistory: analysisHistory),
+                  CalendarCardWidget(analysisHistory: _analysisHistory),
+                  ChartCardWidget(analysisHistory: _analysisHistory),
                 ],
               );
   }

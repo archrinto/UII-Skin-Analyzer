@@ -89,14 +89,17 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     setState(() {
       _isUploadingImage = true;
     });
-    final dateNow = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-    final date = '${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}';
+    final dateNow =
+        DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final date =
+        '${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}';
 
     final dateFormat = DateFormat.yMd().format(dateNow);
     final jsonData = json.encode(_jerawatData);
 
     final appDir = await syspaths.getApplicationDocumentsDirectory();
-    final Directory appDocDirFolder = Directory('${appDir.path}/jerawat_history/');
+    final Directory appDocDirFolder =
+        Directory('${appDir.path}/jerawat_history/');
     final Directory appDocDirNewFolder = await appDocDirFolder.create();
 
     final fileName = path.basename(_imageFile!.path);
@@ -111,9 +114,11 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
     );
 
     if (searchDay.isNotEmpty) {
-      var searchFile = await DBHelper.getSingleData('analysis_results', ['id', 'image_path'], '$dateFormat${auth.currentUser!.email!}');
+      var searchFile = await DBHelper.getSingleData('analysis_results',
+          ['id', 'image_path'], '$dateFormat${auth.currentUser!.email!}');
       var searchedImage = searchFile[0]['image_path'];
-      if (searchedImage != savedImage.path && File(searchedImage).existsSync()) {
+      if (searchedImage != savedImage.path &&
+          File(searchedImage).existsSync()) {
         File? file = File(searchedImage);
         await file.delete();
         file = null;
@@ -151,7 +156,7 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.0.104:5000/deteksi_jerawat"),
+      Uri.parse("http://192.168.0.114:5000/deteksi_jerawat"), // URL API local
     );
     request.files.add(
       http.MultipartFile(
@@ -204,46 +209,55 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
         title: "Panduan Pengambilan Foto",
         content: SizedBox(
           height: MediaQuery.of(context).size.height / 2.9,
-          child: Column(
+          child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('1.'),
-                  Flexible(child: Text('Pastikan wajah terlihat dengan jelas.')),
+                  Flexible(
+                      child: Text('Pastikan wajah terlihat dengan jelas.')),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('2.'),
-                  Flexible(child: Text('Pastikan dahi tidak tertutup oleh bayangan.')),
+                  Flexible(
+                      child:
+                          Text('Pastikan dahi tidak tertutup oleh bayangan.')),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('3.'),
-                  Flexible(child: Text('Untuk hasil yang maksimal, ambil gambar pada ruangan yang memiliki pencahayaan cukup.')),
+                  Flexible(
+                      child: Text(
+                          'Untuk hasil yang maksimal, ambil gambar pada ruangan yang memiliki pencahayaan cukup.')),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('4.'),
-                  Flexible(child: Text('Posisikan wajah pada garis bantu yang ada.')),
+                  Flexible(
+                      child:
+                          Text('Posisikan wajah pada garis bantu yang ada.')),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('5.'),
-                  Flexible(child: Text('Ambil gambar dengan ekspresi yang natural.')),
+                  Flexible(
+                      child:
+                          Text('Ambil gambar dengan ekspresi yang natural.')),
                 ],
               ),
             ],
@@ -259,7 +273,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
         ],
       );
 
-      imageFile = await navigator.push(MaterialPageRoute(builder: (_) => const CameraScreen()));
+      imageFile = await navigator
+          .push(MaterialPageRoute(builder: (_) => const CameraScreen()));
     }
 
     if (imageFile == null) {
@@ -288,7 +303,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
             ),
           ),
           const TextSpan(
-              text: ': Tombol ini berfungsi untuk memilih gambar pada galeri\n\n',
+              text:
+                  ': Tombol ini berfungsi untuk memilih gambar pada galeri\n\n',
               style: TextStyle(
                 color: Colors.black,
                 height: 1.5,
@@ -306,7 +322,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
             ),
           ),
           const TextSpan(
-              text: ': Tombol ini berfungsi untuk mengambil gambar dari kamera\n\n',
+              text:
+                  ': Tombol ini berfungsi untuk mengambil gambar dari kamera\n\n',
               style: TextStyle(
                 color: Colors.black,
                 height: 1.5,
@@ -324,7 +341,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
             ),
           ),
           const TextSpan(
-              text: ': Tombol ini berfungsi untuk menganalisis gambar yang sudah terpilih baik itu melalui galeri maupun kamera\n',
+              text:
+                  ': Tombol ini berfungsi untuk menganalisis gambar yang sudah terpilih baik itu melalui galeri maupun kamera\n',
               style: TextStyle(
                 color: Colors.black,
                 height: 1.5,
@@ -368,7 +386,10 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();
 
-                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)));
+                              Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const MainScreen(initialIndex: 2)));
                             },
                             child: buildActionButton(context, 'Masuk'),
                           ),
@@ -392,7 +413,10 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();
 
-                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 1)));
+                              Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const MainScreen(initialIndex: 1)));
                             },
                             child: buildActionButton(context, 'Lihat'),
                           ),
@@ -558,7 +582,8 @@ class _JerawatAnalysisScreenState extends State<JerawatAnalysisScreen> {
           key: analysisButtonKey,
           child: FittedBox(
             child: FloatingActionButton(
-              backgroundColor: _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
+              backgroundColor:
+                  _imageFile == null ? Colors.grey : const Color(0xFF0E6CDB),
               onPressed: (_imageFile == null || _isUploadingImage)
                   ? null
                   : () async {

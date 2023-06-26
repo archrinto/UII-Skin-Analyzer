@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uii_skin_analyzer/widgets/utility/dialog_widget.dart';
 
 import './analysis/jerawat_analysis_screen.dart';
 import './analysis/keriput_analysis_screen.dart';
@@ -108,7 +109,8 @@ class HomeScreen extends StatelessWidget {
                 imagePath: "assets/images/home_illustrations/keriput.png",
                 color: const Color(0xFFFFBBBB),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(KeriputAnalysisScreen.routeName);
+                  Navigator.of(context)
+                      .pushNamed(KeriputAnalysisScreen.routeName);
                 },
                 buttonWidth: 0.5,
                 context: context,
@@ -118,7 +120,8 @@ class HomeScreen extends StatelessWidget {
                 imagePath: "assets/images/home_illustrations/kemerahan.png",
                 color: const Color(0xFFF880AB),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(KemerahanAnalysisScreen.routeName);
+                  Navigator.of(context)
+                      .pushNamed(KemerahanAnalysisScreen.routeName);
                 },
                 buttonWidth: 0.5,
                 context: context,
@@ -132,7 +135,8 @@ class HomeScreen extends StatelessWidget {
                 imagePath: "assets/images/home_illustrations/bercak-hitam.png",
                 color: const Color(0xFF8FE1AE),
                 onPressed: () {
-                  Navigator.of(context).pushNamed(BercakHitamAnalysisScreen.routeName);
+                  Navigator.of(context)
+                      .pushNamed(BercakHitamAnalysisScreen.routeName);
                 },
                 buttonWidth: 0.5,
                 context: context,
@@ -141,7 +145,24 @@ class HomeScreen extends StatelessWidget {
                 buttonTitle: "Jenis Kulit",
                 imagePath: "assets/images/home_illustrations/jenis-kulit.png",
                 color: const Color(0xFFA3A2F5),
-                onPressed: () {},
+                onPressed: () {
+                  buildDialog(
+                    context: context,
+                    title: 'Pesan',
+                    content: const Text(
+                      'Fitur masih dalam pengembangan',
+                      textAlign: TextAlign.justify,
+                    ),
+                    actionButton: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: buildActionButton(context, 'OK'),
+                      ),
+                    ],
+                  );
+                },
                 buttonWidth: 0.5,
                 context: context,
               ),

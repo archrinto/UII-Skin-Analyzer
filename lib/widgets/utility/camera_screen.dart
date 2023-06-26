@@ -12,7 +12,8 @@ class CameraScreen extends StatefulWidget {
   CameraScreenState createState() => CameraScreenState();
 }
 
-class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver {
+class CameraScreenState extends State<CameraScreen>
+    with WidgetsBindingObserver {
   final ResolutionPreset _currentResolutionPreset = ResolutionPreset.medium;
 
   CameraController? _controller;
@@ -203,7 +204,10 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: _flashIcons.map((item) => _buildFlashIcon(item['flashMode'], item['icon'])).toList(),
+                    children: _flashIcons
+                        .map((item) =>
+                            _buildFlashIcon(item['flashMode'], item['icon']))
+                        .toList(),
                   ),
                 ),
                 AspectRatio(
@@ -213,10 +217,12 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
                       CameraPreview(
                         _controller!,
                         child: LayoutBuilder(
-                          builder: (BuildContext context, BoxConstraints constraints) {
+                          builder: (BuildContext context,
+                              BoxConstraints constraints) {
                             return GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onTapDown: (details) => _onViewFinderTap(details, constraints),
+                              onTapDown: (details) =>
+                                  _onViewFinderTap(details, constraints),
                             );
                           },
                         ),
@@ -260,9 +266,9 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
                                 : InkWell(
                                     borderRadius: BorderRadius.circular(50),
                                     onTap: _onTakePicture,
-                                    child: Stack(
+                                    child: const Stack(
                                       alignment: Alignment.center,
-                                      children: const [
+                                      children: [
                                         Icon(
                                           Icons.circle,
                                           color: Colors.white38,
@@ -283,9 +289,9 @@ class CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver 
                             child: InkWell(
                               borderRadius: BorderRadius.circular(50),
                               onTap: _onFlipCamera,
-                              child: Stack(
+                              child: const Stack(
                                 alignment: Alignment.center,
-                                children: const [
+                                children: [
                                   Icon(
                                     Icons.circle,
                                     color: Colors.black38,
